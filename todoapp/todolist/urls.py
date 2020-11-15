@@ -4,5 +4,5 @@ from django.conf.urls import url
 from todolist.views import index
 
 urlpatterns = [
-    path('', index),
+    path('', index, name='todolist'),
 ]
