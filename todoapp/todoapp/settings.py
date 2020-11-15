@@ -29,10 +29,15 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# Base URL
+BASE_URL = os.environ.get("BASE_URL", "tpi/dev/")
+
+# Static
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -131,4 +136,4 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/' + BASE_URL + 'static/'
