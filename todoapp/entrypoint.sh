@@ -14,7 +14,6 @@ fi
 
 python manage.py migrate
 python manage.py collectstatic --no-input --clear
-cp /code/static/admin/admin_colors.css /code/staticfiles/admin/
 
 # Launch the web server
 exec "$@"
