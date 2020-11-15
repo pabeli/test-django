@@ -31,4 +31,8 @@ RUN chown -R appuser:appuser /code
 
 USER ${APP_USER}:${APP_USER}
 
+EXPOSE 8000
+
 ENTRYPOINT ["/code/entrypoint.sh"]
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
