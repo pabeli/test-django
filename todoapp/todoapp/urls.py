@@ -16,10 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import url
-from todolist.views import index
 from todoapp.settings import BASE_URL
 
 urlpatterns = [
     path(BASE_URL + 'admin/', admin.site.urls), #url(r'^admin/', admin.site.urls),
-    path(BASE_URL, include('todolist.urls')),
 ]
