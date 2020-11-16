@@ -13,6 +13,7 @@ then
 fi
 
 python manage.py migrate
+# Remover ->
 python manage.py collectstatic --no-input --clear
 
 # Launch the web server

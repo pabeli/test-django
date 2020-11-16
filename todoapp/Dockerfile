@@ -26,6 +26,7 @@ RUN mkdir /code/
 WORKDIR /code/
 COPY . /code/
 
+# Remover ->
 RUN mkdir /code/staticfiles
 RUN chown -R appuser:appuser /code
 
