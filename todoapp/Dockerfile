@@ -15,8 +15,7 @@ COPY requirements.txt /requirements.txt
 RUN set -ex \
     && BUILD_DEPS=" \
     build-essential \
-    libpq-dev \
-    libmariadb-dev" \
+    libpq-dev" \
     && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
     && pip install --no-cache-dir -r /requirements.txt \
     \
@@ -36,5 +35,7 @@ USER ${APP_USER}:${APP_USER}
 EXPOSE 8000
 
 ENTRYPOINT ["/code/entrypoint.sh"]
+
+ENV DYLD_LIBRARY_PATH=/usr/local/mysql/lib/
 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
