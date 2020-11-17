@@ -98,7 +98,7 @@ spec:
             - secretRef:
                 name: postgres-secret
           volumeMounts:
-            - mountPath: /var/lib/mysql
+            - mountPath: /var/lib/postgresql/data
               name: postgres-persistent-storage
       volumes:
         - name: postgres-persistent-storage
@@ -122,96 +122,6 @@ spec:
     app: postgres
 ---
 #  kubectl exec -n tpi-dev --stdin --tty postgres-7b7f8658c9-287bn  -- /bin/bash
----
-# MySQL
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mysql-deployment
-  namespace: tpi-dev
-spec:
-  selector:
-    matchLabels:
-      app: mysql-deployment
-  strategy:
-    type: Recreate
-  template:
-    metadata:
-      labels:
-        app: mysql-deployment
-    spec:
-      containers:
-        - image: mysql:8
-          name: mysql
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_ROOT_PASSWORD
-            - name: MYSQL_DATABASE
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_DATABASE
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_USER
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_PASSWORD
-          ports:
-            - containerPort: 3306
-              name: mysql
-          volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-      volumes:
-        - name: mysql-persistent-storage
-          hostPath:
-            path: /home/devops/tpi/dev/mysql
-            type: Directory
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql-service
-  namespace: tpi-dev
-spec:
-  ports:
-    - port: 3306
-  selector:
-    app: mysql-deployment
-  clusterIP: None
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: mysql-secrets
-  namespace: tpi-dev
-type: Opaque
-data:
-  MYSQL_ROOT_PASSWORD: dHBpLWRldg== # tpi-dev
-  MYSQL_DATABASE: dHBp # tpi
-  MYSQL_USER: dHBpLWRldi11c2Vy # tpi-dev-user
-  MYSQL_PASSWORD: dHBpLWRldg== # tpi-dev
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: mysql-configmap
-  namespace: tpi-dev
-data:
-  SQL_ENGINE: django.db.backends.mysql
-  SQL_HOST: mysql-service
-  SQL_PORT: "3306"
----
-# kubectl run -n tpi-dev -it --rm --image=mysql:8 --restart=Never mysql-client -- mysql -hmysql-service -utpi-dev-user -ptpi-dev
 ---
 # APP Definitions
 apiVersion: apps/v1
@@ -307,3 +217,5 @@ spec:
                 name: todoapp-service
                 port:
                   number: 80
+---
+# kubectl exec -n tpi-dev --stdin --tty todoapp-deployment-59657f854b-78vcr  -- sh
