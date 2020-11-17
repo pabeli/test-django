@@ -82,4 +82,109 @@ data:
   MYSQL_USER: dHBpLWRldi11c2Vy # tpi-dev-user
   MYSQL_PASSWORD: dHBpLWRldg== # tpi-dev
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-configmap
+  namespace: tpi-dev
+data:
+  SQL_ENGINE: django.db.backends.mysql
+  SQL_HOST: mysql-service
+  SQL_PORT: "3306"
+---
 # kubectl run -n tpi-dev -it --rm --image=mysql:8 --restart=Never mysql-client -- mysql -hmysql-service -utpi-dev-user -ptpi-dev
+---
+# APP Definitions
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: todoapp-deployment
+  name: todoapp-deployment
+  namespace: tpi-dev
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      run: todoapp-deployment
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: todoapp-deployment
+    spec:
+      containers:
+        - image: patriciocostilla/todoapp:test
+          imagePullPolicy: Always
+          name: todoapp-deployment
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: SQL_ENGINE
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: SQL_ENGINE
+            - name: SQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: SQL_HOST
+            - name: SQL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-configmap
+                  key: SQL_PORT
+            - name: SQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: MYSQL_DATABASE
+            - name: SQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: MYSQL_USER
+            - name: SQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: MYSQL_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todoapp-service
+  namespace: tpi-dev
+spec:
+  selector:
+    run: todoapp-deployment
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todoapp-ingress
+  namespace: tpi-dev
+  # annotations:
+  #  nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /tpi/dev
+            pathType: Prefix
+            backend:
+              service:
+                name: todoapp-service
+                port:
+                  number: 80
