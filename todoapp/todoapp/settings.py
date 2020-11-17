@@ -35,7 +35,6 @@ BASE_URL = os.environ.get("BASE_URL", "tpi/dev/")
 
 # Static
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Application definition
 INSTALLED_APPS = [
