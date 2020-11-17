@@ -6,6 +6,100 @@ metadata:
 ---
 # Database definitions
 ---
+## Postgres
+#---
+## Postgres ConfigMap
+#---
+#apiVersion: v1
+#kind: ConfigMap
+#metadata: 
+#  name: postgres-config
+#  labels: 
+#    app: postgres
+#  data:
+#    SQL_ENGINE: django.db.backends.postgresql_psycopg2
+#    SQL_HOST: postgres-service
+#    SQL_PORT: "3306"
+#---
+## Postgres Persistent Volume  
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: postgres-pv-volume
+#  labels:
+#    type: local
+#    app: postgres
+#spec:
+#  storageClassName: manual
+#  capacity:
+#    storage: 5Gi
+#  accessModes: 
+#    - ReadWriteMany
+#  hostPath:
+#    path: /home/devops/tpi/dev/mysql
+#---
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: postgres-pv-claim
+#  labels:
+#    app: postgres
+#  spec:
+#    storageClassName: manual
+#    accessModes: 
+#      - ReadWriteMany
+#    resources:
+#      requests:
+#        storage: 5Gi
+#---
+## Postgres Deployment
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: postgres-deployment
+#spec: 
+#  replicas: 1
+#  template:
+#    metadata:
+#      labels:
+#        app: postgres-deployment
+#    spec:
+#      containers:
+#        - name: postgres
+#          image: postgres:10.4
+#          imagePullPolicy: "IfNotPresent"
+#          ports:
+#            - containerPort: 5432
+#          envFrom:
+#            - configMapKeyRef:
+#                name: postgres-config
+#          volumeMounts:
+#            -  mountPath: /var/lib/mysql
+#               name: postgres-persistent-storage
+#          volumes:
+#            - name: postgres-persistent-storage
+#              persistentVolumeClaim: 
+#                claimName: postgres-pv-claim
+#---
+## Postgres service
+#---
+#apiVersion: v1
+#kind: Service
+#metadata: 
+#  name: postgres
+#  labels:
+#    app: postgres
+#  spec: 
+#    type: NodePort
+#    ports:
+#      - port: 5432
+#    selector:
+#      app: postgres
+---
+# MySQL
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
