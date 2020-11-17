@@ -13,6 +13,7 @@ pipeline {
                 container('docker') {
                     script {
                       if (env.BRANCH_NAME == 'develop') {
+                        sh 'cd ./todoapp'
                         dockerImage = docker.build "patriciocostilla/todoapp:${BUILD_NUMBER}"
                       } else {
                         echo "Skipping Build"
