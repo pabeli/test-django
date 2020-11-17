@@ -1,4 +1,4 @@
-# Namespace for the project
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -6,97 +6,122 @@ metadata:
 ---
 # Database definitions
 ---
-## Postgres
-#---
+# Postgres
+---
 ## Postgres ConfigMap
-#---
-#apiVersion: v1
-#kind: ConfigMap
-#metadata: 
-#  name: postgres-config
-#  labels: 
-#    app: postgres
-#  data:
-#    SQL_ENGINE: django.db.backends.postgresql_psycopg2
-#    SQL_HOST: postgres-service
-#    SQL_PORT: "3306"
-#---
-## Postgres Persistent Volume  
-#---
-#apiVersion: v1
-#kind: PersistentVolume
-#metadata:
-#  name: postgres-pv-volume
-#  labels:
-#    type: local
-#    app: postgres
-#spec:
-#  storageClassName: manual
-#  capacity:
-#    storage: 5Gi
-#  accessModes: 
-#    - ReadWriteMany
-#  hostPath:
-#    path: /home/devops/tpi/dev/mysql
-#---
-#apiVersion: v1
-#kind: PersistentVolumeClaim
-#metadata:
-#  name: postgres-pv-claim
-#  labels:
-#    app: postgres
-#  spec:
-#    storageClassName: manual
-#    accessModes: 
-#      - ReadWriteMany
-#    resources:
-#      requests:
-#        storage: 5Gi
-#---
-## Postgres Deployment
-#---
-#apiVersion: apps/v1
-#kind: Deployment
-#metadata:
-#  name: postgres-deployment
-#spec: 
-#  replicas: 1
-#  template:
-#    metadata:
-#      labels:
-#        app: postgres-deployment
-#    spec:
-#      containers:
-#        - name: postgres
-#          image: postgres:10.4
-#          imagePullPolicy: "IfNotPresent"
-#          ports:
-#            - containerPort: 5432
-#          envFrom:
-#            - configMapKeyRef:
-#                name: postgres-config
-#          volumeMounts:
-#            -  mountPath: /var/lib/mysql
-#               name: postgres-persistent-storage
-#          volumes:
-#            - name: postgres-persistent-storage
-#              persistentVolumeClaim: 
-#                claimName: postgres-pv-claim
-#---
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: tpi-dev
+  labels:
+    app: postgres
+data:
+  SQL_ENGINE: django.db.backends.postgresql_psycopg2
+  SQL_HOST: postgres
+  SQL_PORT: "5432"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: tpi-dev
+  labels:
+    app: postgres
+type: Opaque
+data:
+  POSTGRES_PASSWORD: dHBpLWRldg== # tpi-dev
+  POSTGRES_DB: dHBp # tpi
+  POSTGRES_USER: dHBpLWRldi11c2Vy # tpi-dev-user
+---
+## Postgres Persistent Volume
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv-volume
+  namespace: tpi-dev
+  labels:
+    type: local
+    app: postgres
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /home/devops/tpi/dev/postgresql
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+  namespace: tpi-dev
+  labels:
+    app: postgres
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Postgres Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: tpi-dev
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-config
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: postgres-persistent-storage
+      volumes:
+        - name: postgres-persistent-storage
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+---
 ## Postgres service
-#---
-#apiVersion: v1
-#kind: Service
-#metadata: 
-#  name: postgres
-#  labels:
-#    app: postgres
-#  spec: 
-#    type: NodePort
-#    ports:
-#      - port: 5432
-#    selector:
-#      app: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: tpi-dev
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+    - port: 5432
+  selector:
+    app: postgres
+---
+#  kubectl exec -n tpi-dev --stdin --tty postgres-7b7f8658c9-287bn  -- /bin/bash
 ---
 # MySQL
 ---
@@ -223,33 +248,33 @@ spec:
             - name: SQL_ENGINE
               valueFrom:
                 configMapKeyRef:
-                  name: mysql-configmap
+                  name: postgres-config
                   key: SQL_ENGINE
             - name: SQL_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: mysql-configmap
+                  name: postgres-config
                   key: SQL_HOST
             - name: SQL_PORT
               valueFrom:
                 configMapKeyRef:
-                  name: mysql-configmap
+                  name: postgres-config
                   key: SQL_PORT
             - name: SQL_DATABASE
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_DATABASE
+                  name: postgres-secret
+                  key: POSTGRES_DB
             - name: SQL_USER
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_USER
+                  name: postgres-secret
+                  key: POSTGRES_USER
             - name: SQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secrets
-                  key: MYSQL_PASSWORD
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
 ---
 apiVersion: v1
 kind: Service
