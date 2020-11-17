@@ -13,7 +13,7 @@ pipeline {
                 container('docker') {
                     script {
                       if (env.BRANCH_NAME == 'develop') {
-                        sh 'cd ./todoapp'
+                        sh 'chmod +x todoapp/entrypoint.sh'
                         dockerImage = docker.build("patriciocostilla/todoapp:${BUILD_NUMBER}", "-f todoapp/Dockerfile ./todoapp")
                       } else {
                         echo "Skipping Build"
