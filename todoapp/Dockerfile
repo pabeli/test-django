@@ -15,7 +15,8 @@ COPY requirements.txt /requirements.txt
 RUN set -ex \
     && BUILD_DEPS=" \
     build-essential \
-    libpq-dev" \
+    libpq-dev \
+    libmariadb-dev" \
     && apt-get update && apt-get install -y --no-install-recommends $BUILD_DEPS \
     && pip install --no-cache-dir -r /requirements.txt \
     \
