@@ -148,7 +148,7 @@ spec:
         run: todoapp-deployment
     spec:
       containers:
-        - image: patriciocostilla/todoapp:test
+        - image: patriciocostilla/todoapp:dev
           imagePullPolicy: Always
           name: todoapp-deployment
           ports:
