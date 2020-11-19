@@ -19,5 +19,6 @@ from django.conf.urls import url
 from todoapp.settings import BASE_URL
 
 urlpatterns = [
-    path(BASE_URL + 'admin/', admin.site.urls), #url(r'^admin/', admin.site.urls),
+    path(BASE_URL + 'admin/', admin.site.urls),
+    path(BASE_URL + '', include('todolist.urls'))
 ]
